@@ -1,0 +1,1095 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<title>GAME</title>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; text-align: center; font: 12.0px Helvetica; min-height: 14.0px}
+    table { border: none; margin-left: auto; margin-right: auto; background-color: white }
+    tr { height: 80px }
+    td { border: 2px solid darkgreen; width: 80px; background-image: url('board.jpg'); font: 48.0px Helvetica; text-align: center; }
+    td.plain { border: 2px solid white; width: 80px; background-image: none }
+    td.score { border: 2px solid black; width: 80px; background-image: none; text-align: center; font: 48.0px Helvetica; color: darkgreen }
+    td.pass { border: 2px solid black; width: 80px; background-image: none; background-color: darkred; text-align: center; font: 24.0px Helvetica; color: white; cursor: default }
+    td.modeButton { border: 2px solid black; width: 80px; background-image: none; background-color: darkred; text-align: center; font: 18.0px Helvetica; color: white; cursor: default }
+    td.modeText { border: 2px solid black; width: 80px; background-image: none; background-color: darkblue; text-align: center; font: 18.0px Helvetica; color: white; cursor: default }
+    td.invisible { border: none; background-image:none; background-color: none }
+    .focus { text-shadow: 1px 1px 2px black, 0 0 25px green, 0 0 10px darkgreen; }
+    .player2 {
+      background-color:white;
+      display:block;
+      height:60px;
+      width:60px;
+      border-radius:50%;
+      border:1px solid #000;
+      margin:auto;
+      box-shadow: 5px 5px 10px;
+    }
+    .player1 {
+      background-color:black;
+      display:block;
+      height:60px;
+      width:60px;
+      border-radius:50%;
+      border:1px solid #fff;
+      margin:auto;
+      box-shadow: 5px 5px 10px;
+    }
+
+    /* valid-move hint dot shown during online play */
+    td.hint { position: relative; }
+    td.hint::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(120, 255, 120, 0.45);
+      pointer-events: none;
+    }
+
+    /* ── Online overlay ── */
+    #online-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #1a4a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      font-family: Helvetica, sans-serif;
+    }
+
+    .oo-panel {
+      background: #0d2e0d;
+      border: 3px solid darkgreen;
+      border-radius: 10px;
+      padding: 36px 40px;
+      min-width: 320px;
+      max-width: 480px;
+      width: 90vw;
+      text-align: center;
+      color: white;
+    }
+
+    .oo-title {
+      font-size: 42px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      color: #90ee90;
+      margin-bottom: 4px;
+    }
+
+    .oo-subtitle {
+      font-size: 18px;
+      color: #5a9a5a;
+      letter-spacing: 6px;
+      margin-bottom: 28px;
+    }
+
+    #handle-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 14px;
+      font-size: 20px;
+      font-family: Helvetica, sans-serif;
+      border: 2px solid darkgreen;
+      border-radius: 5px;
+      background: #1a4a1a;
+      color: white;
+      text-align: center;
+      outline: none;
+      margin-bottom: 10px;
+    }
+
+    #handle-input::placeholder { color: #5a8a5a; }
+    #handle-input:focus { border-color: #90ee90; }
+
+    #login-error {
+      color: #ff8080;
+      font-size: 14px;
+      min-height: 20px;
+      margin-bottom: 8px;
+    }
+
+    .oo-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      font-family: Helvetica, sans-serif;
+      font-weight: bold;
+      letter-spacing: 2px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    #join-btn { background: darkred; color: white; }
+    #join-btn:hover { background: #cc0000; }
+    #join-btn:disabled { background: #663333; cursor: default; }
+
+    #local-btn {
+      background: #1a4a1a;
+      color: #5a9a5a;
+      border: 1px solid #2a6a2a;
+      font-size: 14px;
+      padding: 8px;
+      margin-top: 6px;
+    }
+    #local-btn:hover { color: #90ee90; border-color: #90ee90; }
+
+    /* Lobby panel */
+    #lobby-header {
+      font-size: 14px;
+      color: #5a9a5a;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    #lobby-header strong { color: #90ee90; }
+
+    #players-list {
+      text-align: left;
+      margin-bottom: 16px;
+      min-height: 60px;
+    }
+
+    .player-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 4px;
+      border-bottom: 1px solid #2a4a2a;
+    }
+    .player-row:last-child { border-bottom: none; }
+
+    .player-name {
+      flex: 1;
+      font-size: 18px;
+      color: white;
+    }
+
+    .no-players {
+      color: #5a7a5a;
+      font-size: 14px;
+      text-align: center;
+      padding: 20px 0;
+      font-style: italic;
+    }
+
+    .challenge-label { color: #ffcc44; font-size: 13px; margin-right: 6px; }
+    .waiting-label   { color: #aaaaaa; font-size: 13px; margin-right: 6px; font-style: italic; }
+
+    .lbtn {
+      padding: 5px 10px;
+      font-size: 13px;
+      font-family: Helvetica, sans-serif;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 4px;
+      letter-spacing: 1px;
+    }
+    .challenge-btn { background: darkred;   color: white; }
+    .challenge-btn:hover { background: #cc0000; }
+    .accept-btn    { background: darkgreen; color: white; }
+    .accept-btn:hover { background: #006600; }
+    .decline-btn   { background: #444;      color: white; }
+    .decline-btn:hover { background: #666; }
+    .cancel-btn    { background: #555;      color: #ccc; }
+    .cancel-btn:hover { background: #666; }
+
+    #online-link {
+      text-align: center;
+      margin-top: 12px;
+      font-family: Helvetica, sans-serif;
+    }
+    #online-link span {
+      cursor: pointer;
+      color: darkblue;
+      font-size: 15px;
+      text-decoration: underline;
+    }
+    #online-link span:hover { color: blue; }
+  </style>
+
+  <script>
+
+      let adj = new Map();
+      let turn = 1;
+      let fc = 0;
+      let priorMovePass = false;
+      let totalMoves = 4;
+      let onePlayerMode = false;
+      let wait = false;
+      let thinkingWait = false;
+      let gameOver = false;
+
+      // Online mode state
+      let onlineMode = false;
+      let myHandle = null;
+      let myColor = null;
+      let ws = null;
+      let currentValidMoves = new Set();
+
+
+      function init() {
+
+        document.getElementById('cell3-3').classList.add('player1');
+        document.getElementById('cell4-4').classList.add('player1');
+        document.getElementById('cell4-3').classList.add('player2');
+        document.getElementById('cell3-4').classList.add('player2');
+        document.getElementById('score1').classList.add('focus');
+
+        setPassButton(1, false);
+        setPassButton(2, false);
+        setThinking(false);
+        setModeText();
+
+        doGameOver(false);
+
+        var cells = document.querySelectorAll("td");
+
+        for (let i = 0; i < cells.length; i++) {
+          cells[i].addEventListener("click", handleClick);
+        }
+
+        for (let x = 0; x < 8; x++) {
+          for (let y = 0; y < 8; y++) {
+            let u = y + 1;
+            let d = y - 1;
+            let l = x - 1;
+            let r = x + 1;
+            adj.set(x + '-' + y + '-' + 0, u < 8 ? x + '-' + u : '');
+            adj.set(x + '-' + y + '-' + 1, u < 8 && r < 8 ? r + '-' + u : '');
+            adj.set(x + '-' + y + '-' + 2, r < 8 ? r + '-' + y : '');
+            adj.set(x + '-' + y + '-' + 3, d > -1 && r < 8 ? r + '-' + d : '');
+            adj.set(x + '-' + y + '-' + 4, d > -1 ? x + '-' + d : '');
+            adj.set(x + '-' + y + '-' + 5, d > -1 && l > -1 ? l + '-' + d : '');
+            adj.set(x + '-' + y + '-' + 6, l > -1 ? l + '-' + y : '');
+            adj.set(x + '-' + y + '-' + 7, l > -1 && u < 8 ? l + '-' + u : '');
+          }
+        }
+
+        updateStats();
+      }
+
+
+      function handleClick() {
+
+        if (!wait) {
+
+          if (this.id.includes('pass')) {
+
+            handlePassClick(this.id);
+
+          } else if (this.id.includes('td')) {
+
+            handleBoardClick(this.id);
+
+          } else if (this.id == 'modeButton') {
+
+            handleModeChange();
+
+          } else if (this.id == 'modeThing') {
+
+            noise(8);
+          }
+        }
+      }
+
+
+      function handleModeChange() {
+
+        if (onlineMode) return;
+
+        onePlayerMode = !onePlayerMode;
+        noise(7);
+        setModeText();
+        checkForOnePlayerMode();
+      }
+
+
+      function setModeText() {
+
+        document.getElementById('modeSpan').textContent = (onePlayerMode ? 'ONE' : 'TWO') + '\nPLAYER\nMODE';
+      }
+
+
+      function handlePassClick(id) {
+
+        if (onlineMode) return;
+
+        let p = id.substring(4, 5)
+
+        if (document.getElementById('pass' + p).classList.contains('pass')) {
+
+          setWait(true);
+          noise(5);
+          setPassButton(turn, false);
+          thatsHappenedNow();
+          priorMovePass = true;
+          checkForOnePlayerMode();
+        }
+      }
+
+
+      function handleBoardClick(id) {
+
+        if (onlineMode) {
+          if (wait) return;
+          let x = parseInt(id.substring(2, 3));
+          let y = parseInt(id.substring(4, 5));
+          if (!currentValidMoves.has(x + '-' + y)) {
+            noise(0);
+            return;
+          }
+          setWait(true);
+          currentValidMoves = new Set();
+          clearHints();
+          ws.send(JSON.stringify({type: 'move', x: x, y: y}));
+          return;
+        }
+
+        let x = id.substring(2, 3);
+        let y = id.substring(4, 5);
+
+        fc = 0;
+
+        if (applyMove(x, y, true)) {
+
+          setWait(true);
+
+          document.getElementById('cell' + x + '-' + y).classList.add('player' + turn);
+
+          totalMoves++;
+          priorMovePass = false;
+
+          noise(turn);
+
+          setTimeout(() => thatsHappenedNow(), fc * 200);
+          setTimeout(() => checkForOnePlayerMode(), fc * 200);
+
+        } else {
+          noise(0);
+        }
+      }
+
+
+      function thatsHappenedNow() {
+
+        turn = (turn == 1) ? 2 : 1;
+
+        if (!(onePlayerMode && turn == 2)) {
+          setWait(false);
+        }
+
+        if (updateStats() == 0) {
+          if (totalMoves == 64 || priorMovePass) {
+            noise(6);
+            doGameOver(true);
+          } else {
+            setTimeout(() => noise(4), 200);
+            setPassButton(turn, true);
+          }
+        }
+      }
+
+
+      function checkForOnePlayerMode() {
+
+        if (!gameOver && onePlayerMode && turn == 2) {
+
+          setThinking(true);
+          setWait(true);
+          setTimeout(() => takeTurn(), 2500);
+        }
+      }
+
+
+      function takeTurn() {
+
+        let maxBenefit = 0, mx = 0, my = 0;
+
+        loopX: for (let x = 0; x < 8; x++) {
+          for (let y = 0; y < 8; y++) {
+            if (getCellValue(x + '-' + y) == 0) {
+              for (let d = 0; d < 8; d++) {
+                fc = 0;
+                if (traverse(d, adj.get(x + '-' + y + '-' + d), 0, false)) {
+                  if (isCorner(x, y)) {
+                    maxBenefit = fc;
+                    mx = x;
+                    my = y;
+                    break loopX;
+                  }
+                  if (fc > maxBenefit) {
+                    maxBenefit = fc;
+                    mx = x;
+                    my = y;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        setThinking(false);
+        setWait(false);
+
+        if (maxBenefit == 0) {
+
+          noise(5);
+          setPassButton(2, false);
+          thatsHappenedNow();
+          priorMovePass = true;
+
+        } else {
+
+          fc = 0;
+          applyMove(mx, my, true);
+          document.getElementById('cell' + mx + '-' + my).classList.add('player' + turn);
+          totalMoves++;
+          priorMovePass = false;
+          noise(2);
+          setTimeout(() => thatsHappenedNow(), fc * 200);
+        }
+      }
+
+
+      function isCorner(x, y) {
+
+        return x == 0 && y == 0 ||
+               x == 0 && y == 7 ||
+               x == 7 && y == 0 ||
+               x == 7 && y == 7;
+      }
+
+
+      function applyMove(x, y, a) {
+
+        let v = false;
+
+        if (getCellValue(x + '-' + y) == 0) {
+          for (let d = 0; d < 8; d++) {
+            if (traverse(d, adj.get(x + '-' + y + '-' + d), 0, a)) {
+              v = true;
+            }
+          }
+        }
+
+        return v;
+      }
+
+
+      function traverse(d, c, l, a) {
+
+        let flip = false;
+
+        if (c.includes('-')) {
+          if (getCellValue(c) > 0) {
+            if (getCellValue(c) != turn) {
+              flip = traverse(d, adj.get(c + '-' + d), ++l, a);
+            } else {
+              return l > 0;
+            }
+
+            if (flip) {
+              fc++;
+              if (a) {
+                setTimeout(() => noise(3), fc * 200);
+                setTimeout(() => doFlip(c), fc * 200);
+              }
+            }
+          }
+        }
+
+        return flip;
+      }
+
+
+      function doFlip(c) {
+
+        let cNow = getCellValue(c);
+        let cFlip = cNow == 1 ? 2 : 1;
+
+        document.getElementById('cell' + c).classList.remove('player' + cNow);
+        document.getElementById('cell' + c).classList.add('player' + cFlip);
+      }
+
+
+      function getCellValue(c) {
+
+        let p1 = document.getElementById('cell' + c).classList.contains('player1');
+        let p2 = document.getElementById('cell' + c).classList.contains('player2');
+
+        return p1 ? 1 : p2 ? 2 : 0;
+      }
+
+
+      function updateStats() {
+
+        let p1 = 0, p2 = 0, m = 0;
+
+        for (let x = 0; x < 8; x++) {
+          for (let y = 0; y < 8; y++) {
+
+            m += applyMove(x, y, false) ? 1 : 0;
+            p1 += getCellValue(x + '-' + y) == 1 ? 1 : 0;
+            p2 += getCellValue(x + '-' + y) == 2 ? 1 : 0;
+          }
+        }
+
+        document.getElementById('score1').textContent = p1;
+        document.getElementById('score2').textContent = p2;
+        document.getElementById('score1').classList.remove('focus');
+        document.getElementById('score2').classList.remove('focus');
+        document.getElementById('score' + turn).classList.add('focus');
+
+        return m > 0;
+      }
+
+
+      function setPassButton(p, visible) {
+
+        document.getElementById('pass' + p).classList.remove(visible ? 'invisible' : 'pass');
+        document.getElementById('pass' + p).classList.add(visible ? 'pass' : 'invisible');
+        document.getElementById('passSpan' + p).textContent = visible ? 'PASS!' : '';
+
+      }
+
+
+      function setThinking(visible) {
+
+        thinkingWait = visible;
+
+        document.getElementById('thinking').classList.remove(visible ? 'invisible' : 'modeText');
+        document.getElementById('thinking').classList.add(visible ? 'modeText' : 'invisible');
+        document.getElementById('thinkingSpan').textContent = visible ? 'HMMM' : '';
+
+        if (visible) {
+          for (let i = 1; i < 4; i++) {
+            setTimeout(() => document.getElementById('thinkingSpan').textContent += '.', i * 600);
+          }
+        }
+      }
+
+
+      function doGameOver(visible) {
+
+        gameOver = visible;
+
+        document.getElementById('gameOver1').classList.remove(visible ? 'invisible' : 'pass');
+        document.getElementById('gameOver2').classList.remove(visible ? 'invisible' : 'pass');
+        document.getElementById('gameOver1').classList.add(visible ? 'pass' : 'invisible');
+        document.getElementById('gameOver2').classList.add(visible ? 'pass' : 'invisible');
+        document.getElementById('gameOverSpan1').textContent = visible ? 'GAME\nOVER' : '';
+        document.getElementById('gameOverSpan2').textContent = visible ? 'GAME\nOVER' : '';
+
+      }
+
+
+      function setWait(w) {
+
+        if (w) {
+          wait = true;
+        } else {
+          wait = thinkingWait;
+        }
+      }
+
+      function noise(n) {
+
+        let file = '';
+
+        if (n > 0) {
+          file = 'othello' + n + '.mp3';
+        } else {
+          let r = Math.floor(Math.random() * 6);
+          file = 'othello' + n + r + '.mp3';
+        }
+
+        new Audio(file).play();
+      }
+
+
+      // ── Online mode ────────────────────────────────────────────────
+
+      function showOnlineOverlay() {
+        document.getElementById('online-overlay').style.display = 'flex';
+      }
+
+      function hideOnlineOverlay() {
+        document.getElementById('online-overlay').style.display = 'none';
+      }
+
+      function joinLobby() {
+        const handle = document.getElementById('handle-input').value.trim();
+        if (!handle) return;
+
+        document.getElementById('login-error').textContent = '';
+        document.getElementById('join-btn').disabled = true;
+
+        const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(proto + '//' + location.host + '/ws');
+
+        ws.onopen = () => {
+          ws.send(JSON.stringify({type: 'join_lobby', handle: handle}));
+        };
+
+        ws.onmessage = (e) => {
+          try { handleServerMessage(JSON.parse(e.data)); }
+          catch (err) {}
+        };
+
+        ws.onclose = () => handleWsClose();
+        ws.onerror = () => handleWsClose();
+      }
+
+      function handleServerMessage(msg) {
+        switch (msg.type) {
+
+          case 'error':
+            document.getElementById('login-error').textContent = msg.message;
+            document.getElementById('join-btn').disabled = false;
+            break;
+
+          case 'joined_lobby':
+            myHandle = msg.handle;
+            document.getElementById('login-panel').style.display = 'none';
+            document.getElementById('lobby-panel').style.display = '';
+            document.getElementById('my-handle-display').textContent = msg.handle;
+            break;
+
+          case 'lobby_state':
+            renderLobby(msg);
+            break;
+
+          case 'game_start':
+            myColor = msg.your_color;
+            startOnlineGame(msg);
+            break;
+
+          case 'state':
+            applyServerState(msg);
+            break;
+
+          case 'gameover':
+            handleOnlineGameOver(msg);
+            break;
+
+          case 'challenge_declined':
+            // server will follow with a lobby_state broadcast
+            break;
+
+          case 'opponent_left':
+            handleOpponentLeft();
+            break;
+
+          case 'returned_to_lobby':
+            handleReturnedToLobby();
+            break;
+        }
+      }
+
+      function renderLobby(msg) {
+        const { players, outgoing, incoming } = msg;
+        const list = document.getElementById('players-list');
+        list.innerHTML = '';
+
+        const others = players.filter(p => p.handle !== myHandle);
+
+        if (others.length === 0) {
+          list.innerHTML = '<div class="no-players">No other players online yet</div>';
+          return;
+        }
+
+        for (const p of others) {
+          const row = document.createElement('div');
+          row.className = 'player-row';
+
+          const name = document.createElement('span');
+          name.className = 'player-name';
+          name.textContent = p.handle;
+          row.appendChild(name);
+
+          if (incoming.includes(p.handle)) {
+            const lbl = document.createElement('span');
+            lbl.className = 'challenge-label';
+            lbl.textContent = 'challenges you!';
+            row.appendChild(lbl);
+
+            const acceptBtn = document.createElement('button');
+            acceptBtn.className = 'lbtn accept-btn';
+            acceptBtn.textContent = 'Accept';
+            acceptBtn.onclick = () => ws.send(JSON.stringify({type: 'accept', challenger: p.handle}));
+            row.appendChild(acceptBtn);
+
+            const declineBtn = document.createElement('button');
+            declineBtn.className = 'lbtn decline-btn';
+            declineBtn.textContent = 'Decline';
+            declineBtn.onclick = () => ws.send(JSON.stringify({type: 'decline', challenger: p.handle}));
+            row.appendChild(declineBtn);
+
+          } else if (outgoing === p.handle) {
+            const lbl = document.createElement('span');
+            lbl.className = 'waiting-label';
+            lbl.textContent = 'waiting...';
+            row.appendChild(lbl);
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'lbtn cancel-btn';
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = () => ws.send(JSON.stringify({type: 'cancel_challenge'}));
+            row.appendChild(cancelBtn);
+
+          } else if (!outgoing) {
+            const challengeBtn = document.createElement('button');
+            challengeBtn.className = 'lbtn challenge-btn';
+            challengeBtn.textContent = 'Challenge';
+            challengeBtn.onclick = () => ws.send(JSON.stringify({type: 'challenge', target: p.handle}));
+            row.appendChild(challengeBtn);
+          }
+
+          list.appendChild(row);
+        }
+      }
+
+      function startOnlineGame(msg) {
+        onlineMode = true;
+        hideOnlineOverlay();
+
+        // Clear board
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            document.getElementById('cell' + x + '-' + y).classList.remove('player1', 'player2');
+          }
+        }
+
+        // Repurpose left button as color indicator
+        document.getElementById('modeButton').className = 'modeText';
+        document.getElementById('modeButtonSpan').textContent = myColor === 1 ? '● BLACK' : '○ WHITE';
+        document.getElementById('modeSpan').textContent = 'ONLINE\nMODE';
+
+        setPassButton(1, false);
+        setPassButton(2, false);
+        setThinking(false);
+        doGameOver(false);
+
+        turn = 1;
+        gameOver = false;
+        priorMovePass = false;
+        totalMoves = 4;
+
+        setWait(true);
+      }
+
+      function applyServerState(msg) {
+        const { board, turn: serverTurn, scores, valid_moves, last_move, flipped, passed_player } = msg;
+
+        turn = serverTurn;
+
+        if (last_move) {
+          const { x, y, player } = last_move;
+          document.getElementById('cell' + x + '-' + y).classList.add('player' + player);
+          noise(player === myColor ? 1 : 2);
+        }
+
+        let animDone = 0;
+        if (flipped && flipped.length > 0) {
+          for (let i = 0; i < flipped.length; i++) {
+            const [fx, fy] = flipped[i];
+            const newVal = board[fy][fx];
+            animDone = (i + 1) * 200;
+            setTimeout(() => {
+              document.getElementById('cell' + fx + '-' + fy).classList.remove('player1', 'player2');
+              document.getElementById('cell' + fx + '-' + fy).classList.add('player' + newVal);
+              noise(3);
+            }, animDone);
+          }
+        }
+
+        setTimeout(() => {
+          document.getElementById('score1').textContent = scores['1'];
+          document.getElementById('score2').textContent = scores['2'];
+          document.getElementById('score1').classList.remove('focus');
+          document.getElementById('score2').classList.remove('focus');
+          document.getElementById('score' + serverTurn).classList.add('focus');
+
+          clearHints();
+          currentValidMoves = new Set();
+          if (serverTurn === myColor && valid_moves) {
+            for (const [vx, vy] of valid_moves) {
+              currentValidMoves.add(vx + '-' + vy);
+              document.getElementById('td' + vx + '-' + vy).classList.add('hint');
+            }
+          }
+
+          if (passed_player) {
+            showOnlinePassNote(passed_player);
+          }
+
+          setWait(serverTurn !== myColor);
+        }, animDone + 50);
+      }
+
+      function showOnlinePassNote(player) {
+        const el = document.getElementById('pass' + player);
+        const sp = document.getElementById('passSpan' + player);
+        el.classList.remove('invisible');
+        el.classList.add('pass');
+        sp.textContent = 'PASS';
+        noise(4);
+        setTimeout(() => {
+          el.classList.remove('pass');
+          el.classList.add('invisible');
+          sp.textContent = '';
+        }, 1800);
+      }
+
+      function handleOnlineGameOver(msg) {
+        const { scores, winner } = msg;
+        noise(6);
+
+        let text;
+        if (!winner) {
+          text = 'DRAW';
+        } else if (winner === myHandle) {
+          text = 'YOU\nWIN!';
+        } else {
+          text = winner.length <= 6 ? winner + '\nWINS' : 'YOU\nLOSE';
+        }
+
+        gameOver = true;
+        document.getElementById('gameOver1').classList.remove('invisible');
+        document.getElementById('gameOver1').classList.add('pass');
+        document.getElementById('gameOver2').classList.remove('invisible');
+        document.getElementById('gameOver2').classList.add('pass');
+        document.getElementById('gameOverSpan1').textContent = text;
+        document.getElementById('gameOverSpan2').textContent = text;
+      }
+
+      function handleOpponentLeft() {
+        if (!onlineMode) return;
+        noise(6);
+        gameOver = true;
+        document.getElementById('gameOver1').classList.remove('invisible');
+        document.getElementById('gameOver1').classList.add('pass');
+        document.getElementById('gameOver2').classList.remove('invisible');
+        document.getElementById('gameOver2').classList.add('pass');
+        document.getElementById('gameOverSpan1').textContent = 'OPPONENT\nLEFT';
+        document.getElementById('gameOverSpan2').textContent = 'OPPONENT\nLEFT';
+      }
+
+      function handleReturnedToLobby() {
+        onlineMode = false;
+        myColor = null;
+        currentValidMoves = new Set();
+
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            document.getElementById('cell' + x + '-' + y).classList.remove('player1', 'player2');
+          }
+        }
+        clearHints();
+
+        doGameOver(false);
+        setPassButton(1, false);
+        setPassButton(2, false);
+
+        document.getElementById('modeButton').className = 'modeButton';
+        document.getElementById('modeButtonSpan').textContent = 'CHANGE MODE';
+        setModeText();
+
+        showOnlineOverlay();
+        document.getElementById('login-panel').style.display = 'none';
+        document.getElementById('lobby-panel').style.display = '';
+      }
+
+      function handleWsClose() {
+        if (!ws) return;
+        ws = null;
+        onlineMode = false;
+        myColor = null;
+        currentValidMoves = new Set();
+
+        clearHints();
+        doGameOver(false);
+        setPassButton(1, false);
+        setPassButton(2, false);
+
+        document.getElementById('modeButton').className = 'modeButton';
+        document.getElementById('modeButtonSpan').textContent = 'CHANGE MODE';
+        setModeText();
+
+        showOnlineOverlay();
+        document.getElementById('lobby-panel').style.display = 'none';
+        document.getElementById('login-panel').style.display = '';
+        document.getElementById('join-btn').disabled = false;
+        document.getElementById('login-error').textContent = 'Connection lost. Please reconnect.';
+
+        myHandle = null;
+      }
+
+      function clearHints() {
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            document.getElementById('td' + x + '-' + y).classList.remove('hint');
+          }
+        }
+      }
+
+  </script>
+</head>
+<body onload="init()">
+
+<!-- Online lobby overlay (shown on page load) -->
+<div id="online-overlay">
+  <div class="oo-panel">
+
+    <div id="login-panel">
+      <div class="oo-title">OTHELLO</div>
+      <div class="oo-subtitle">ONLINE</div>
+      <input id="handle-input" type="text" maxlength="15" placeholder="Enter your name…"
+             onkeydown="if(event.key==='Enter') joinLobby()">
+      <div id="login-error"></div>
+      <button id="join-btn" class="oo-btn" onclick="joinLobby()">JOIN LOBBY</button>
+      <button id="local-btn" class="oo-btn" onclick="hideOnlineOverlay()">PLAY LOCALLY</button>
+    </div>
+
+    <div id="lobby-panel" style="display:none">
+      <div id="lobby-header">LOBBY &mdash; <strong id="my-handle-display"></strong></div>
+      <div id="players-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<p class="p1"><br></p>
+<p class="p1"><br></p>
+<table id=boardTable>
+  <tr>
+    <td id="modeButton" class=modeButton><span id="modeButtonSpan">CHANGE MODE</span></td>
+    <td class=plain></td>
+    <td id="td0-7"><span id="cell0-7"></span></td>
+    <td id="td1-7"><span id="cell1-7"></span></td>
+    <td id="td2-7"><span id="cell2-7"></span></td>
+    <td id="td3-7"><span id="cell3-7"></span></td>
+    <td id="td4-7"><span id="cell4-7"></span></td>
+    <td id="td5-7"><span id="cell5-7"></span></td>
+    <td id="td6-7"><span id="cell6-7"></span></td>
+    <td id="td7-7"><span id="cell7-7"></span></td>
+    <td class=plain></td>
+    <td id="modeThing" class=modeText><span id="modeSpan"></span></td>
+  </tr>
+  <tr>
+    <td class=plain></td>
+    <td class=plain></td>
+    <td id="td0-6"><span id="cell0-6"></span></td>
+    <td id="td1-6"><span id="cell1-6"></span></td>
+    <td id="td2-6"><span id="cell2-6"></span></td>
+    <td id="td3-6"><span id="cell3-6"></span></td>
+    <td id="td4-6"><span id="cell4-6"></span></td>
+    <td id="td5-6"><span id="cell5-6"></span></td>
+    <td id="td6-6"><span id="cell6-6"></span></td>
+    <td id="td7-6"><span id="cell7-6"></span></td>
+    <td class=plain></td>
+    <td class=plain></td>
+  </tr>
+  <tr>
+    <td id="pass1" class=pass><span id="passSpan1"></span></td>
+    <td class=plain></td>
+    <td id="td0-5"><span id="cell0-5"></span></td>
+    <td id="td1-5"><span id="cell1-5"></span></td>
+    <td id="td2-5"><span id="cell2-5"></span></td>
+    <td id="td3-5"><span id="cell3-5"></span></td>
+    <td id="td4-5"><span id="cell4-5"></span></td>
+    <td id="td5-5"><span id="cell5-5"></span></td>
+    <td id="td6-5"><span id="cell6-5"></span></td>
+    <td id="td7-5"><span id="cell7-5"></span></td>
+    <td class=plain></td>
+    <td id="pass2" class=pass><span id="passSpan2"></span></td>
+  </tr>
+  <tr>
+    <td><span class=player1></span></td>
+    <td class=plain></td>
+    <td id="td0-4"><span id="cell0-4"></span></td>
+    <td id="td1-4"><span id="cell1-4"></span></td>
+    <td id="td2-4"><span id="cell2-4"></span></td>
+    <td id="td3-4"><span id="cell3-4"></span></td>
+    <td id="td4-4"><span id="cell4-4"></span></td>
+    <td id="td5-4"><span id="cell5-4"></span></td>
+    <td id="td6-4"><span id="cell6-4"></span></td>
+    <td id="td7-4"><span id="cell7-4"></span></td>
+    <td class=plain></td>
+    <td><span class=player2></span></td>
+  </tr>
+  <tr>
+    <td class=score><span id="score1">2</span></td>
+    <td class=plain></td>
+    <td id="td0-3"><span id="cell0-3"></span></td>
+    <td id="td1-3"><span id="cell1-3"></span></td>
+    <td id="td2-3"><span id="cell2-3"></span></td>
+    <td id="td3-3"><span id="cell3-3"></span></td>
+    <td id="td4-3"><span id="cell4-3"></span></td>
+    <td id="td5-3"><span id="cell5-3"></span></td>
+    <td id="td6-3"><span id="cell6-3"></span></td>
+    <td id="td7-3"><span id="cell7-3"></span></td>
+    <td class=plain></td>
+    <td class=score><span id="score2">2</span></td>
+  </tr>
+  <tr>
+    <td class=plain></td>
+    <td class=plain></td>
+    <td id="td0-2"><span id="cell0-2"></span></td>
+    <td id="td1-2"><span id="cell1-2"></span></td>
+    <td id="td2-2"><span id="cell2-2"></span></td>
+    <td id="td3-2"><span id="cell3-2"></span></td>
+    <td id="td4-2"><span id="cell4-2"></span></td>
+    <td id="td5-2"><span id="cell5-2"></span></td>
+    <td id="td6-2"><span id="cell6-2"></span></td>
+    <td id="td7-2"><span id="cell7-2"></span></td>
+    <td class=plain></td>
+    <td id=thinking><span id="thinkingSpan">HMMM...</span></td>
+  </tr>
+  <tr>
+    <td class=plain></td>
+    <td class=plain></td>
+    <td id="td0-1"><span id="cell0-1"></span></td>
+    <td id="td1-1"><span id="cell1-1"></span></td>
+    <td id="td2-1"><span id="cell2-1"></span></td>
+    <td id="td3-1"><span id="cell3-1"></span></td>
+    <td id="td4-1"><span id="cell4-1"></span></td>
+    <td id="td5-1"><span id="cell5-1"></span></td>
+    <td id="td6-1"><span id="cell6-1"></span></td>
+    <td id="td7-1"><span id="cell7-1"></span></td>
+    <td class=plain></td>
+    <td class=plain></td>
+  </tr>
+  <tr>
+    <td id="gameOver1" class=pass><span id="gameOverSpan1"></span></td>
+    <td class=plain></td>
+    <td id="td0-0"><span id="cell0-0"></span></td>
+    <td id="td1-0"><span id="cell1-0"></span></td>
+    <td id="td2-0"><span id="cell2-0"></span></td>
+    <td id="td3-0"><span id="cell3-0"></span></td>
+    <td id="td4-0"><span id="cell4-0"></span></td>
+    <td id="td5-0"><span id="cell5-0"></span></td>
+    <td id="td6-0"><span id="cell6-0"></span></td>
+    <td id="td7-0"><span id="cell7-0"></span></td>
+    <td class=plain></td>
+    <td id="gameOver2" class=pass><span id="gameOverSpan2"></span></td>
+  </tr>
+</table>
+
+<div id="online-link">
+  <span onclick="showOnlineOverlay()">Play Online</span>
+</div>
+
+</body>
+</html>
