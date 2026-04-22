@@ -38,18 +38,6 @@
       box-shadow: 5px 5px 10px;
     }
 
-    /* valid-move hint dot shown during online play */
-    td.hint { position: relative; }
-    td.hint::after {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: rgba(120, 255, 120, 0.45);
-      pointer-events: none;
-    }
 
     /* ── Online overlay ── */
     #online-overlay {
@@ -306,7 +294,7 @@
 
       function handleModeChange() {
 
-        if (onlineMode) return;
+        if (onlineMode) { noise(8); return; }
 
         onePlayerMode = !onePlayerMode;
         noise(7);
@@ -351,7 +339,6 @@
           }
           setWait(true);
           currentValidMoves = new Set();
-          clearHints();
           ws.send(JSON.stringify({type: 'move', x: x, y: y}));
           return;
         }
@@ -798,6 +785,16 @@
           const { x, y, player } = last_move;
           document.getElementById('cell' + x + '-' + y).classList.add('player' + player);
           noise(player === myColor ? 1 : 2);
+        } else {
+          // Initial state — render full board
+          for (let ry = 0; ry < 8; ry++) {
+            for (let rx = 0; rx < 8; rx++) {
+              const v = board[ry][rx];
+              const cell = document.getElementById('cell' + rx + '-' + ry);
+              cell.classList.remove('player1', 'player2');
+              if (v) cell.classList.add('player' + v);
+            }
+          }
         }
 
         let animDone = 0;
@@ -821,12 +818,10 @@
           document.getElementById('score2').classList.remove('focus');
           document.getElementById('score' + serverTurn).classList.add('focus');
 
-          clearHints();
           currentValidMoves = new Set();
           if (serverTurn === myColor && valid_moves) {
             for (const [vx, vy] of valid_moves) {
               currentValidMoves.add(vx + '-' + vy);
-              document.getElementById('td' + vx + '-' + vy).classList.add('hint');
             }
           }
 
@@ -896,7 +891,6 @@
             document.getElementById('cell' + x + '-' + y).classList.remove('player1', 'player2');
           }
         }
-        clearHints();
 
         doGameOver(false);
         setPassButton(1, false);
@@ -918,7 +912,6 @@
         myColor = null;
         currentValidMoves = new Set();
 
-        clearHints();
         doGameOver(false);
         setPassButton(1, false);
         setPassButton(2, false);
@@ -936,13 +929,6 @@
         myHandle = null;
       }
 
-      function clearHints() {
-        for (let y = 0; y < 8; y++) {
-          for (let x = 0; x < 8; x++) {
-            document.getElementById('td' + x + '-' + y).classList.remove('hint');
-          }
-        }
-      }
 
   </script>
 </head>
