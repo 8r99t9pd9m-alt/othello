@@ -615,6 +615,10 @@
         document.getElementById('online-overlay').style.display = 'none';
       }
 
+      function setOnlineLinkText(online) {
+        document.getElementById('online-link-btn').textContent = online ? 'Play Locally' : 'Play Online';
+      }
+
       function joinLobby() {
         const handle = document.getElementById('handle-input').value.trim();
         if (!handle) return;
@@ -750,6 +754,7 @@
       function startOnlineGame(msg) {
         onlineMode = true;
         hideOnlineOverlay();
+        setOnlineLinkText(true);
 
         // Clear board
         for (let y = 0; y < 8; y++) {
@@ -901,6 +906,7 @@
         setModeText();
 
         showOnlineOverlay();
+        setOnlineLinkText(false);
         document.getElementById('login-panel').style.display = 'none';
         document.getElementById('lobby-panel').style.display = '';
       }
@@ -921,6 +927,7 @@
         setModeText();
 
         showOnlineOverlay();
+        setOnlineLinkText(false);
         document.getElementById('lobby-panel').style.display = 'none';
         document.getElementById('login-panel').style.display = '';
         document.getElementById('join-btn').disabled = false;
@@ -1074,7 +1081,7 @@
 </table>
 
 <div id="online-link">
-  <span onclick="showOnlineOverlay()">Play Online</span>
+  <span id="online-link-btn" onclick="showOnlineOverlay()">Play Online</span>
 </div>
 
 </body>
