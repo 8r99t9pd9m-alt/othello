@@ -789,7 +789,7 @@
         if (last_move) {
           const { x, y, player } = last_move;
           document.getElementById('cell' + x + '-' + y).classList.add('player' + player);
-          noise(player === myColor ? 1 : 2);
+          noise(player);
         } else {
           // Initial state — render full board
           for (let ry = 0; ry < 8; ry++) {
